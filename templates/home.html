@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="home-container">
+    <!-- User Profile Section -->
+    <div class="profile-section">
+        <div class="profile-dropdown">
+            <button class="profile-button">
+                <img src="{{ user.photo }}" alt="Profile Photo" class="profile-photo">
+                <span>{{ user.name }}</span>
+            </button>
+            <div class="dropdown-content">
+                <a href="#" id="view-profile">Ver Perfil</a>
+                <a href="#" id="update-profile">Actualizar Perfil</a>
+                <a href="#" id="delete-profile">Eliminar Perfil</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot Interface -->
+    <div class="chatbot-container">
+        <div class="message-container" id="message-container">
+            <!-- Messages will be dynamically added here -->
+            <div class="message ai-message">
+                <p>¡Bienvenido a tu diario AI! 📔</p>
+                <p>Para obtener información de una fecha específica, escribe:</p>
+                <p><code>quiero saber mis entradas del dia yyyy-mm-dd</code></p>
+                <p>Reemplaza <code>yyyy</code> con el año actual, <code>mm</code> con el mes actual, y <code>dd</code> con el día actual, todo en números.</p>
+                <p>Para registrar nueva información, simplemente escribe tu mensaje y envíalo.</p>
+            </div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Escribe tu mensaje aquí...">
+            <button id="send-button">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profile-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Perfil de Usuario</h2>
+        <form id="profile-form">
+            <div class="form-group">
+                <label for="name">Nombre</label>
+                <input type="text" id="name" name="name" value="{{ user.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{ user.email }}" required>
+            </div>
+            <div class="form-group">
+                <label for="photo">Foto de Perfil (URL)</label>
+                <input type="text" id="photo" name="photo" value="{{ user.photo }}">
+            </div>
+            <button type="submit">Guardar Cambios</button>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='scripts.js') }}"></script>
+{% endblock %}
