@@ -1,5 +1,7 @@
 import random
 from datetime import datetime
+import re
+
 from models import DiaryEntry
 
 # List of random responses
@@ -44,28 +46,28 @@ def handle_user_message(user_id, message):
         ])
 
     # Check if the user is requesting entries for a specific date
-    if "quiero saber mis entradas del dia" in message:
+    # Extract date using regex
+    match = re.search(r"(\d{4}-\d{2}-\d{2})", message)
+    if match:
+        date_str = match.group(1)
         try:
-            # Extract the date from the message
-            date_str = message.split("del dia ")[1].strip()
             date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return "La fecha ingresada no es válida. Usa el formato yyyy-mm-dd."
+        # Retrieve diary entries for the date
+        entries = DiaryEntry.get_entries_by_user(user_id, date)
+        print(f"User ID: {user_id}, Entry Date: {date}")
 
-            # Retrieve entries for the specified date
-            entries = DiaryEntry.get_entries_by_user(user_id)
-            entries_for_date = [entry for entry in entries if entry[2] == date]
-
-            if entries_for_date:
-                response = f"Entradas para el {date_str}:\n"
-                for entry in entries_for_date:
-                    response += f"- {entry[3]}\n"
-                return response
-            else:
-                return f"No hay entradas para el {date_str}."
-        except Exception as e:
-            return "Lo siento, no pude entender la fecha. Asegúrate de usar el formato yyyy-mm-dd."
-
+        if entries:
+            response = f"📅 Entradas para el {date_str}:\n"
+            for entry in entries:
+                response += f"- 📝 {entry[3]} (Hora: {entry[2].strftime('%H:%M:%S')})\n"
+            return response
+        else:
+            return f"❌ No hay entradas registradas para el {date_str}."
     # Default response for new diary entries
     return f"{generate_random_response()}."
+
 
 # Example usage
 if __name__ == "__main__":

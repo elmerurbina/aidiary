@@ -95,23 +95,25 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to Retrieve Entries by User
-CREATE OR REPLACE FUNCTION get_entries_by_user(p_user_id INT)
-RETURNS TABLE (
-    id INT,
-    user_id INT,
-    entry_date DATE,
-    message TEXT,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-) AS $$
+CREATE OR REPLACE FUNCTION get_entries_by_user(p_user_id integer, p_entry_date date)
+RETURNS TABLE(id integer, user_id integer, entry_date date, message text, created_at timestamp, updated_at timestamp) AS
+$$
 BEGIN
     RETURN QUERY
-    SELECT diary_entries.id, diary_entries.user_id, diary_entries.entry_date, diary_entries.message, diary_entries.created_at, diary_entries.updated_at
+    SELECT
+        diary_entries.id,
+        diary_entries.user_id,
+        diary_entries.entry_date,  -- This should be DATE now
+        diary_entries.message,
+        diary_entries.created_at,
+        diary_entries.updated_at
     FROM diary_entries
     WHERE diary_entries.user_id = p_user_id
-    ORDER BY diary_entries.entry_date DESC;  -- Qualify the column with the table name
+    AND diary_entries.entry_date = p_entry_date  -- Direct comparison (no need to cast)
+    ORDER BY diary_entries.entry_date DESC;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Function to Delete User Profile
 CREATE OR REPLACE FUNCTION delete_user_profile(p_id INT)
@@ -181,3 +183,6 @@ CREATE INDEX IF NOT EXISTS idx_user_id ON diary_entries(user_id);
 
 -- Index for quick lookup of diary entries by entry_date
 CREATE INDEX IF NOT EXISTS idx_entry_date ON diary_entries(entry_date);
+
+ALTER TABLE diary_entries
+ALTER COLUMN entry_date TYPE DATE USING entry_date::DATE;

@@ -122,6 +122,7 @@ class DiaryEntry:
         conn = get_db_connection()
         cur = conn.cursor()
         try:
+            print(f"Inserting entry: user_id={user_id}, entry_date={entry_date}, message={message}")
             cur.callproc("create_diary_entry", (user_id, entry_date, message))
             conn.commit()
         except psycopg2.Error as e:
@@ -132,14 +133,14 @@ class DiaryEntry:
             conn.close()
 
     @staticmethod
-    def get_entries_by_user(user_id):
+    def get_entries_by_user(user_id, entry_date):
         """
-        Calls the `get_entries_by_user` function in PostgreSQL to retrieve all diary entries for a user.
+        Calls the `get_entries_by_user` function in PostgreSQL to retrieve all diary entries for a user on a specific date.
         """
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            cur.callproc("get_entries_by_user", (user_id,))
+            cur.callproc("get_entries_by_user", (user_id, entry_date))
             entries = cur.fetchall()
             return entries
         except psycopg2.Error as e:
