@@ -110,3 +110,59 @@ document.addEventListener("DOMContentLoaded", function () {
         messageContainer.scrollTop = messageContainer.scrollHeight;
     }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const profileForm = document.getElementById("profile-form");
+    const deleteProfileButton = document.getElementById("delete-profile-button");
+
+    // Handle profile form submission
+    if (profileForm) {
+        profileForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(profileForm);
+            const data = {
+                name: formData.get("name"),
+                email: formData.get("email"),
+                photo: formData.get("photo")
+            };
+
+            fetch("/update_profile", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams(data).toString()
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+        });
+    }
+
+    // Handle delete profile button click
+    if (deleteProfileButton) {
+        deleteProfileButton.addEventListener("click", function () {
+            if (confirm("¿Estás seguro de que deseas eliminar tu perfil? Esta acción no se puede deshacer.")) {
+                fetch("/delete_profile", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        window.location.href = "/signin";
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                    });
+            }
+        });
+    }
+});

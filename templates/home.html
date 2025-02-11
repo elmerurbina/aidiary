@@ -10,9 +10,7 @@
                 <span>{{ user.name }}</span>
             </button>
             <div class="dropdown-content">
-                <a href="#" id="view-profile">Ver Perfil</a>
-                <a href="#" id="update-profile">Actualizar Perfil</a>
-                <a href="#" id="delete-profile">Eliminar Perfil</a>
+               <a href="{{ url_for('profile') }}">Ver Perfil</a>
             </div>
         </div>
     </div>

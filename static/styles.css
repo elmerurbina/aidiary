@@ -103,10 +103,24 @@ a:hover {
     border: none;
     border-radius: 5px;
     padding: 10px;
+    margin-bottom: 5px;
+    margin-top: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
 }
+
+ button[type="submit"] {
+        background-color: #6200ee;
+        color: white;
+        border: none;
+        margin-bottom: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
 
 .profile-photo {
     width: 30px;
