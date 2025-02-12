@@ -125,11 +125,13 @@ $$ LANGUAGE plpgsql;
 -- Function to Create a Diary Entry
 CREATE OR REPLACE FUNCTION create_diary_entry(
     p_user_id INT,
-    p_message TEXT
+    p_message TEXT,
+    p_sentiment_score FLOAT,
+    p_sentiment_label VARCHAR
 ) RETURNS VOID AS $$
 BEGIN
-    INSERT INTO diary_entries(user_id, entry_date, message)
-    VALUES (p_user_id, CURRENT_DATE, p_message);
+    INSERT INTO diary_entries(user_id, entry_date, message, sentiment_score, sentiment_label)
+    VALUES (p_user_id, CURRENT_DATE, p_message, p_sentiment_score, p_sentiment_label);
 END;
 $$ LANGUAGE plpgsql;
 

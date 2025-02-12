@@ -1,7 +1,7 @@
 import random
 from datetime import datetime
 import re
-
+from textblob import TextBlob
 from models import DiaryEntry
 
 # List of random responses
@@ -62,15 +62,29 @@ def handle_user_message(user_id, message):
         if entries:
             response = f"📅 Entradas para el {date_str}:\n"
             for entry in entries:
-                response += f"- 📝 {entry[2]} (Hora: {entry[3].strftime('%H:%M:%S')})\n"
+                sentiment_emoji = "😊" if entry[4] == "positive" else "😢" if entry[4] == "negative" else "😐"
+                response += f"- 📝 {entry[2]} (Sentimiento: {entry[4]} {sentiment_emoji}, Hora: {entry[5].strftime('%H:%M:%S')})\n"
+
+            # Send a follow-up message based on sentiment
+            if any(entry[4] == "positive" for entry in entries):
+                response += "💬 ¡Qué bueno que tengas pensamientos positivos! Sigue así."
+            elif any(entry[4] == "negative" for entry in entries):
+                response += "💬 Lamento que te sientas así. Si necesitas hablar más, estoy aquí."
+            else:
+                response += "💬 Gracias por compartir tus pensamientos."
+
             return response
         else:
             return f"❌ No hay entradas registradas para el {date_str}."
 
     # Default response for new diary entries
     DiaryEntry.create_entry(user_id, message)
-    return f"{generate_random_response()}."
 
+    # Check sentiment of the message and respond accordingly
+    sentiment_emoji = "😊" if "bueno" in message or "feliz" in message else "😢" if "triste" in message or "malo" in message else "😐"
+    follow_up_message = "💬 ¡Qué bueno que tengas pensamientos positivos! Sigue así." if sentiment_emoji == "😊" else "💬 Lamento que te sientas así. Si necesitas hablar más, estoy aquí."
+
+    return f"{generate_random_response()} {follow_up_message}"
 
 # Example usage in console
 if __name__ == "__main__":
