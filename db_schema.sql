@@ -95,22 +95,21 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to Retrieve Entries by User
-CREATE OR REPLACE FUNCTION get_entries_by_user(p_user_id integer, p_entry_date date)
-RETURNS TABLE(id integer, user_id integer, entry_date date, message text, created_at timestamp, updated_at timestamp) AS
+CREATE OR REPLACE FUNCTION get_entries_by_user(p_user_id INT, p_entry_date DATE)
+RETURNS TABLE(id INT, user_id INT, message TEXT, created_at TIMESTAMP, updated_at TIMESTAMP) AS
 $$
 BEGIN
     RETURN QUERY
     SELECT
         diary_entries.id,
         diary_entries.user_id,
-        diary_entries.entry_date,  -- This should be DATE now
         diary_entries.message,
         diary_entries.created_at,
         diary_entries.updated_at
     FROM diary_entries
     WHERE diary_entries.user_id = p_user_id
-    AND diary_entries.entry_date = p_entry_date  -- Direct comparison (no need to cast)
-    ORDER BY diary_entries.entry_date DESC;
+    AND DATE(diary_entries.created_at) = p_entry_date
+    ORDER BY diary_entries.created_at DESC;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -126,12 +125,11 @@ $$ LANGUAGE plpgsql;
 -- Function to Create a Diary Entry
 CREATE OR REPLACE FUNCTION create_diary_entry(
     p_user_id INT,
-    p_entry_date DATE,
     p_message TEXT
 ) RETURNS VOID AS $$
 BEGIN
     INSERT INTO diary_entries(user_id, entry_date, message)
-    VALUES (p_user_id, p_entry_date, p_message);
+    VALUES (p_user_id, CURRENT_DATE, p_message);
 END;
 $$ LANGUAGE plpgsql;
 

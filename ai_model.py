@@ -18,7 +18,7 @@ random_responses = [
     "espectacular tu mensaje ha sido guardado exitosamente!"
 ]
 
-# Welcome message in Spanish
+
 WELCOME_MESSAGE = (
     "¡Bienvenido a tu diario AI! 📔\n\n"
     "Para obtener información de una fecha específica, escribe:\n"
@@ -54,22 +54,25 @@ def handle_user_message(user_id, message):
             date = datetime.strptime(date_str, "%Y-%m-%d").date()
         except ValueError:
             return "La fecha ingresada no es válida. Usa el formato yyyy-mm-dd."
+
         # Retrieve diary entries for the date
         entries = DiaryEntry.get_entries_by_user(user_id, date)
-        print(f"User ID: {user_id}, Entry Date: {date}")
+        print(f"User ID: {user_id}, Entry Date: {date}, Entries: {entries}")
 
         if entries:
             response = f"📅 Entradas para el {date_str}:\n"
             for entry in entries:
-                response += f"- 📝 {entry[3]} (Hora: {entry[2].strftime('%H:%M:%S')})\n"
+                response += f"- 📝 {entry[2]} (Hora: {entry[3].strftime('%H:%M:%S')})\n"
             return response
         else:
             return f"❌ No hay entradas registradas para el {date_str}."
+
     # Default response for new diary entries
+    DiaryEntry.create_entry(user_id, message)
     return f"{generate_random_response()}."
 
 
-# Example usage
+# Example usage in console
 if __name__ == "__main__":
     # Simulate a user interaction
     user_id = 1  # Replace with the actual user ID

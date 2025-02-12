@@ -115,16 +115,17 @@ class User:
 # Diary Entry Model
 class DiaryEntry:
     @staticmethod
-    def create_entry(user_id, entry_date, message):
+    def create_entry(user_id, message):
         """
         Calls the `create_diary_entry` function in PostgreSQL to create a new diary entry.
         """
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            print(f"Inserting entry: user_id={user_id}, entry_date={entry_date}, message={message}")
-            cur.callproc("create_diary_entry", (user_id, entry_date, message))
+            print(f"Inserting entry: user_id={user_id}, message={message}")
+            cur.callproc("create_diary_entry", (user_id, message))
             conn.commit()
+            print("Entry created successfully!")
         except psycopg2.Error as e:
             print(f"Error creating diary entry: {e}")
             conn.rollback()
@@ -140,8 +141,10 @@ class DiaryEntry:
         conn = get_db_connection()
         cur = conn.cursor()
         try:
+            print(f"Retrieving entries for user_id={user_id}, entry_date={entry_date}")
             cur.callproc("get_entries_by_user", (user_id, entry_date))
             entries = cur.fetchall()
+            print(f"Retrieved entries: {entries}")
             return entries
         except psycopg2.Error as e:
             print(f"Error retrieving diary entries: {e}")
@@ -149,3 +152,4 @@ class DiaryEntry:
         finally:
             cur.close()
             conn.close()
+
