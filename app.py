@@ -5,7 +5,7 @@ import hashlib
 from ai_model import handle_user_message
 
 app = Flask(__name__)
-app.secret_key = os.urandom(56)
+app.secret_key = os.getenv('SECRET_KEY')
 
 
 # Helper function to hash passwords
@@ -124,14 +124,12 @@ def update_profile():
     # Hash the password only if it's provided
     hashed_password = hash_password(password) if password else None
 
-    # Debugging: Print the received password to verify it's not null
-    print(f"Received password: {password}")
 
     # Update the user's profile
     User.update_user(user_id, name=name, email=email, password=hashed_password, photo=photo)
 
     # Redirect back to the profile page
-    return redirect("home")
+    return redirect("profile")
     flash("Your profile has been updated successfully!", "success")
 
 # Delete Profile
