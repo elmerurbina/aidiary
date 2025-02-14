@@ -18,7 +18,6 @@ random_responses = [
     "espectacular tu mensaje ha sido guardado exitosamente!"
 ]
 
-
 WELCOME_MESSAGE = (
     "¡Bienvenido a tu diario AI! 📔\n\n"
     "Para obtener información de una fecha específica, escribe:\n"
@@ -28,9 +27,33 @@ WELCOME_MESSAGE = (
     "¡Estoy aquí para ayudarte!"
 )
 
+
 # Function to generate a random response
 def generate_random_response():
     return random.choice(random_responses)
+
+
+# Function to analyze sentiment of the message
+def analyze_sentiment(message):
+    # Create a TextBlob object
+    blob = TextBlob(message)
+
+    # Get sentiment polarity (-1 to 1 scale)
+    polarity = blob.sentiment.polarity
+
+    # Determine the sentiment emoji based on polarity
+    if polarity > 0:
+        sentiment_emoji = "😊"
+        follow_up_message = "💬 ¡Qué bueno que tengas pensamientos positivos! Sigue así."
+    elif polarity < 0:
+        sentiment_emoji = "😢"
+        follow_up_message = "💬 Lamento que te sientas así. Si necesitas hablar más, estoy aquí."
+    else:
+        sentiment_emoji = "😐"
+        follow_up_message = "💬 Gracias por compartir tus pensamientos."
+
+    return sentiment_emoji, follow_up_message
+
 
 # Function to handle user messages
 def handle_user_message(user_id, message):
@@ -80,11 +103,11 @@ def handle_user_message(user_id, message):
     # Default response for new diary entries
     DiaryEntry.create_entry(user_id, message)
 
-    # Check sentiment of the message and respond accordingly
-    sentiment_emoji = "😊" if "bueno" in message or "feliz" in message else "😢" if "triste" in message or "malo" in message else "😐"
-    follow_up_message = "💬 ¡Qué bueno que tengas pensamientos positivos! Sigue así." if sentiment_emoji == "😊" else "💬 Lamento que te sientas así. Si necesitas hablar más, estoy aquí."
+    # Analyze the sentiment of the message
+    sentiment_emoji, follow_up_message = analyze_sentiment(message)
 
     return f"{generate_random_response()} {follow_up_message}"
+
 
 # Example usage in console
 if __name__ == "__main__":
