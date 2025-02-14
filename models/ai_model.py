@@ -2,7 +2,7 @@ import random
 from datetime import datetime
 import re
 from textblob import TextBlob
-from models import DiaryEntry
+from models.models import DiaryEntry
 
 # List of random responses
 random_responses = [
