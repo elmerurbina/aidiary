@@ -1,5 +1,9 @@
 import os
 import psycopg2
+from psycopg2 import pool
+import os
+import psycopg2
+from psycopg2 import pool
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -12,17 +16,30 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
-# Database connection function
-def get_db_connection():
-    conn = psycopg2.connect(
+# Initialize the connection pool
+try:
+    # Creating a connection pool with min and max connections
+    connection_pool = psycopg2.pool.SimpleConnectionPool(
+        1,  # Min number of connections
+        10, # Max number of connections
         host=DB_HOST,
         port=DB_PORT,
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD
     )
+    print("Connection pool created successfully")
+except psycopg2.Error as e:
+    print(f"Error creating connection pool: {e}")
+
+# Database connection function using the pool
+def get_db_connection():
+    conn = connection_pool.getconn()  # Get a connection from the pool
+    if conn is None:
+        raise Exception("Unable to obtain a connection from the pool")
     return conn
 
+# User Model
 # User Model
 class User:
     @staticmethod
@@ -40,7 +57,7 @@ class User:
             conn.rollback()
         finally:
             cur.close()
-            conn.close()
+            connection_pool.putconn(conn)  # Return the connection to the pool
 
     @staticmethod
     def update_user(user_id, name=None, email=None, password=None, photo=None):
@@ -57,7 +74,7 @@ class User:
             conn.rollback()
         finally:
             cur.close()
-            conn.close()
+            connection_pool.putconn(conn)
 
     @staticmethod
     def delete_user(user_id):
@@ -74,7 +91,7 @@ class User:
             conn.rollback()
         finally:
             cur.close()
-            conn.close()
+            connection_pool.putconn(conn)
 
     @staticmethod
     def get_user_by_email(email):
@@ -92,7 +109,7 @@ class User:
             return None
         finally:
             cur.close()
-            conn.close()
+            connection_pool.putconn(conn)
 
     @staticmethod
     def get_user_by_id(user_id):
@@ -110,7 +127,7 @@ class User:
             return None
         finally:
             cur.close()
-            conn.close()
+            connection_pool.putconn(conn)
 
 # Diary Entry Model
 class DiaryEntry:
@@ -122,16 +139,16 @@ class DiaryEntry:
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            print(f"Inserting entry: user_id={user_id}, message={message}")
+
             cur.callproc("create_diary_entry", (user_id, message))
             conn.commit()
-            print("Entry created successfully!")
+
         except psycopg2.Error as e:
             print(f"Error creating diary entry: {e}")
             conn.rollback()
         finally:
             cur.close()
-            conn.close()
+            connection_pool.putconn(conn)
 
     @staticmethod
     def get_entries_by_user(user_id, entry_date):
@@ -141,15 +158,14 @@ class DiaryEntry:
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            print(f"Retrieving entries for user_id={user_id}, entry_date={entry_date}")
+
             cur.callproc("get_entries_by_user", (user_id, entry_date))
             entries = cur.fetchall()
-            print(f"Retrieved entries: {entries}")
+
             return entries
         except psycopg2.Error as e:
-            print(f"Error retrieving diary entries: {e}")
+
             return []
         finally:
             cur.close()
-            conn.close()
-
+            connection_pool.putconn(conn)
