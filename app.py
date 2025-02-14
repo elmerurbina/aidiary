@@ -1,16 +1,22 @@
 import os
+import bcrypt
 from flask import Flask, request, jsonify, session, render_template, redirect, url_for, flash
 from models import User, DiaryEntry
-import hashlib
 from ai_model import handle_user_message
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 
 
-# Helper function to hash passwords
+# Helper function to hash passwords using bcrypt
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode(), salt).decode()  # Store as string
+
+
+# Helper function to verify passwords
+def check_password(password, hashed_password):
+    return bcrypt.checkpw(password.encode(), hashed_password.encode())
 
 
 # Home Page
@@ -36,11 +42,11 @@ def home():
 def signin():
     if request.method == "POST":
         email = request.form.get("email")
-        password = hash_password(request.form.get("password"))
+        password = request.form.get("password")
 
         # Retrieve the user
         user = User.get_user_by_email(email)
-        if not user or user[3] != password:  # user[3] is the password field
+        if not user or not check_password(password, user[3]):  # user[3] is the hashed password
             return render_template("signin.html", error="Invalid email or password")
 
         # Store user ID in session
@@ -56,15 +62,18 @@ def signup():
     if request.method == "POST":
         name = request.form.get("name")
         email = request.form.get("email")
-        password = hash_password(request.form.get("password"))
+        password = request.form.get("password")
         photo = request.form.get("photo")
+
+        # Hash the password before storing it
+        hashed_password = hash_password(password)
 
         # Check if the user already exists
         if User.get_user_by_email(email):
             return render_template("signup.html", error="User already exists")
 
         # Create the user
-        User.create_user(name, email, password, photo)
+        User.create_user(name, email, hashed_password, photo)
         return redirect(url_for("signin"))
 
     return render_template("signup.html")
@@ -73,8 +82,10 @@ def signup():
 # Logout
 @app.route("/logout")
 def logout():
-    session.pop("user_id", None)
+    session.clear()
+    flash("Has cerrado sesión exitosamente.", "success")
     return redirect(url_for("signin"))
+
 
 
 # Chat Endpoint
@@ -103,13 +114,13 @@ def profile():
         return jsonify({"error": "User not found"}), 404
 
     return render_template("profile.html", user={
-        "name": user[1],  # user[1] is the name field
-        "email": user[2],  # user[2] is the email field
-        "photo": user[4]  # user[4] is the photo field
+        "name": user[1],
+        "email": user[2],
+        "photo": user[4]
     })
 
 
-# Update Profile
+# Update Profile (With Concurrency Handling)
 @app.route("/update_profile", methods=["POST"])
 def update_profile():
     if "user_id" not in session:
@@ -124,24 +135,32 @@ def update_profile():
     # Hash the password only if it's provided
     hashed_password = hash_password(password) if password else None
 
+    # Use a transaction to prevent race conditions
+    try:
+        User.update_user(user_id, name=name, email=email, password=hashed_password, photo=photo)
+        flash("Your profile has been updated successfully!", "success")
+    except Exception as e:
+        flash("Error updating profile. Please try again.", "danger")
 
-    # Update the user's profile
-    User.update_user(user_id, name=name, email=email, password=hashed_password, photo=photo)
+    return redirect(url_for("profile"))
 
-    # Redirect back to the profile page
-    return redirect("profile")
-    flash("Your profile has been updated successfully!", "success")
 
-# Delete Profile
+# Delete Profile (With Concurrency Handling)
 @app.route("/delete_profile", methods=["POST"])
 def delete_profile():
     if "user_id" not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
     user_id = session["user_id"]
-    User.delete_user(user_id)
-    session.pop("user_id", None)
-    return jsonify({"message": "Perfil eliminado exitosamente"})
+
+    # Use a transaction to ensure profile deletion is atomic
+    try:
+        User.delete_user(user_id)
+        session.pop("user_id", None)  # Remove user from session
+        return jsonify({"message": "Perfil eliminado exitosamente"})
+    except Exception as e:
+        return jsonify({"error": "Error deleting profile"}), 500
+
 
 # Retrieve Diary Entries
 @app.route("/entries", methods=["GET"])

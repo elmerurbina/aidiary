@@ -90,7 +90,7 @@ BEGIN
     RETURN QUERY
     SELECT users.id, users.name, users.email, users.password, users.photo, users.created_at, users.updated_at
     FROM users
-    WHERE users.email = p_email;  -- Qualify the column with the table name
+    WHERE users.email = p_email;
 END;
 $$ LANGUAGE plpgsql;
 

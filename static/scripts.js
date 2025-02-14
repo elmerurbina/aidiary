@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ message: message }),
+                body: JSON.stringify({message: message}),
             })
                 .then((response) => response.json())
                 .then((data) => {
@@ -166,3 +166,45 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const profileForm = document.getElementById("profile-form");
+
+    if (profileForm) {
+        profileForm.addEventListener("submit", function (event) {
+            let name = document.getElementById("name").value.trim();
+            let email = document.getElementById("email").value.trim();
+            let photo = document.getElementById("photo").value.trim();
+            let password = document.getElementById("password") ? document.getElementById("password").value.trim() : "";
+
+            console.log("Validating inputs..."); // Debugging message
+
+            if (name.length > 255) {
+                alert("El nombre no puede tener más de 255 caracteres.");
+                event.preventDefault();
+                return;
+            }
+            if (email.length > 255) {
+                alert("El correo no puede tener más de 255 caracteres.");
+                event.preventDefault();
+                return;
+            }
+            if (photo.length > 255) {
+                alert("La URL de la foto no puede tener más de 255 caracteres.");
+                event.preventDefault();
+                return;
+            }
+            if (password.length > 0 && password.length < 8) {
+                alert("La contraseña debe tener al menos 8 caracteres.");
+                event.preventDefault();
+                return;
+            }
+
+            console.log("Validation passed! Submitting form..."); // Debugging message
+        });
+    } else {
+        console.error("Error: No se encontró el formulario de perfil.");
+    }
+});
+
