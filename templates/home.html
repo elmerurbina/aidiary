@@ -2,16 +2,16 @@
 
 {% block content %}
 <div class="home-container">
-    <!-- User Profile Section -->
     <div class="profile-section">
+        <span>{{ user.name }}</span>
         <div class="profile-dropdown">
-            <button class="profile-button">
+            <div class="profile-button">
                 <img src="{{ user.photo }}" alt="Profile Photo" class="profile-photo">
-                <span>{{ user.name }}</span>
-            </button>
-            <div class="dropdown-content">
-               <a href="{{ url_for('profile') }}">Ver Perfil</a>
-               <a class="logout-button" <button onclick="window.location.href='{{ url_for('logout') }}'">Cerrar Sesión</button> </a>
+
+                <div class="dropdown-content">
+                <a href="{{ url_for('profile') }}">Ver Perfil</a>
+                 <a class="logout-button" <button onclick="window.location.href='{{ url_for('logout') }}'">Cerrar Sesión</button> </a>
+                </div>
             </div>
         </div>
     </div>
@@ -28,11 +28,12 @@
                 <p>Para registrar nueva información, simplemente escribe tu mensaje y envíalo.</p>
             </div>
         </div>
-        <div class="input-container">
+
+    </div>
+    <div class="input-container">
             <input type="text" id="user-input" placeholder="Escribe tu mensaje aquí...">
             <button id="send-button">Enviar</button>
         </div>
-    </div>
 </div>
 
 <!-- Profile Modal -->
