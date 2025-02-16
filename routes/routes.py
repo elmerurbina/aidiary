@@ -126,12 +126,12 @@ def setup_routes(app):
 
         # Use a transaction to prevent race conditions
         try:
-            User.update_user(user_id, name=name, email=email, password=hashed_password, photo=photo)
+            User.update_user(user_id, name, email, hashed_password, photo)
             flash("Perfil Actualizado con exito!", "success")
         except Exception as e:
             flash("Error updating profile. Please try again.", "danger")
 
-        return redirect(url_for('profile'))
+        return redirect(url_for("profile"))
 
     # Delete Profile (With Concurrency Handling)
     @app.route("/delete_profile", methods=["POST"])

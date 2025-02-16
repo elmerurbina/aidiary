@@ -16,7 +16,7 @@
 
     <a href="{{ url_for('home') }}">Regresar</a>
     <h2>Perfil de Usuario</h2>
-    <form id="profile-form">
+    <form id="profile-form" action="{{ url_for('update_profile') }}" method="post">
         <div class="form-group">
             <label for="name">Nombre</label>
             <input type="text" id="name" name="name" value="{{ user.name }}" required>
