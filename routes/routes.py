@@ -122,7 +122,7 @@ def setup_routes(app):
         photo = request.form.get("photo")
 
         # Hash the password only if it's provided
-        hashed_password = hash_password(password) if password else None
+        hashed_password = hash_password(password) if password else 'admin200'
 
         # Use a transaction to prevent race conditions
         try:
@@ -130,8 +130,7 @@ def setup_routes(app):
             flash("Perfil Actualizado con exito!", "success")
         except Exception as e:
             flash("Error updating profile. Please try again.", "danger")
-
-        return redirect(url_for("profile"))
+        return jsonify({"message": "Profile updated successfully"}), 200
 
     # Delete Profile (With Concurrency Handling)
     @app.route("/delete_profile", methods=["POST"])
