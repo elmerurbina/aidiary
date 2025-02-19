@@ -109,29 +109,38 @@ def setup_routes(app):
             "photo": user[4]
         })
 
-    # Update Profile (With Concurrency Handling)
     @app.route("/update_profile", methods=["POST"])
     def update_profile():
         if "user_id" not in session:
             return redirect(url_for("signin"))
 
+        valid_fields = ["name", "email", "password", "photo"]
+        updated_fields = {}
+
+        for field in valid_fields:
+            value = request.form.get(field)
+            if value:
+                updated_fields[field] = value
+
+        for field in request.form:
+            if field not in valid_fields:
+                flash("Campo no válido proporcionado", "danger")
+                return jsonify({"error": "Campo no válido proporcionado"}), 400
+
         user_id = session["user_id"]
-        name = request.form.get("name")
-        email = request.form.get("email")
-        password = request.form.get("password")
-        photo = request.form.get("photo")
 
-        # Hash the password only if it's provided
-        hashed_password = hash_password(password) if password else None
+        if "password" in updated_fields:
+            updated_fields["password"] = hash_password(updated_fields["password"])
 
-        # Use a transaction to prevent race conditions
         try:
-            User.update_user(user_id, name, email, hashed_password, photo)
-            flash("Perfil Actualizado con exito!", "success")
+            User.generic_update_user(user_id, **updated_fields)
+            flash("Perfil actualizado con éxito!", "success")
+            return jsonify({"message": "Perfil actualizado correctamente"}), 200
         except Exception as e:
-            flash("Error updating profile. Please try again.", "danger")
+            flash("Error al actualizar el perfil. Intenta nuevamente.", "danger")
+            print(f"Error updating profile: {e}")
+            return jsonify({"error": str(e)}), 500
 
-        return redirect(url_for("profile"))
 
     # Delete Profile (With Concurrency Handling)
     @app.route("/delete_profile", methods=["POST"])

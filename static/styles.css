@@ -3,8 +3,14 @@
     box-sizing: border-box;
 }
 
+@font-face {
+    font-family: "Exo 2";
+    src: url("./fonts/Exo2-Regular.ttf") format("truetype");
+}
+
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: "Exo 2";
     background-color: #1a1a1a; /* Black */
     color: #ffffff; /* White */
     margin: 0;
@@ -43,6 +49,9 @@ body {
 }
 
 
+p {
+    margin: 0;
+}
 
 h2 {
     color: #bb86fc; /* Purple */
@@ -51,12 +60,33 @@ h2 {
 
 .form-group {
     margin-bottom: 15px;
+    position: relative;
+}
+
+.form-group > label {
+    position: absolute;
+    left: 10px;
+    font-size: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.3s ease-in-out;
+    color: #ffffff;
+    background: #2d2d2d;
+    padding: 0 5px;
+    pointer-events: none;
+}
+
+.form-group > input:focus + label,
+.form-group > input:not(:placeholder-shown) + label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 12px;
 }
 
 label {
     display: block;
     margin-bottom: 5px;
-    color: #bb86fc; /* Purple */
+    color: #bb86fc;
 }
 
 input {
@@ -64,7 +94,7 @@ input {
     padding: 10px;
     border: 1px solid #bb86fc; /* Purple */
     border-radius: 5px;
-    background-color: #1a1a1a; /* Black */
+    background-color: transparent; /* Black */
     color: #ffffff; /* White */
 }
 
@@ -76,11 +106,17 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
+button:hover {
+    background-color: #3700b3 !important; /* Dark Blue */
+}
 button:disabled {
-    background-color: #666; /* Gray */
-    cursor: not-allowed;
+    background-color: #666 !important; /* Gray */
+    cursor: not-allowed !important;
 }
 
 a {
@@ -139,11 +175,12 @@ a:hover {
     "header"
     "chatbot-messages"
     "footer";
-  grid-template-rows:  auto 1fr 50px;
+    grid-template-rows:  auto 1fr 50px;
     flex-direction: column;
     height: 100vh;
     max-height: 100vh;
     width: 100%;
+    max-width: 100%;
     background-color: #1a1a1a; /* Black */
     color: #ffffff; /* White */
 }
@@ -155,6 +192,7 @@ a:hover {
     padding: 10px;
     background-color: #2d2d2d;
     grid-area: header;
+    border-radius: 0 0 1rem 1rem;
 }
 
 .profile-dropdown {
@@ -173,17 +211,17 @@ a:hover {
     align-items: center;
 }
 
- button[type="submit"] {
-        background-color: #6200ee;
-        color: white;
-        border: none;
-        margin-bottom: 5px;
-        padding: 10px 20px;
-        font-size: 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
+button[type="submit"] {
+    background-color: #6200ee;
+    color: white;
+    border: none;
+    margin-bottom: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
 
 .profile-photo {
     width: 30px;
@@ -230,6 +268,7 @@ a:hover {
     max-width: 100%;
     padding: 20px;
     box-sizing: border-box;
+    position: relative;
     grid-area: chatbot-messages;
 }
 
@@ -237,13 +276,14 @@ a:hover {
 .message-container {
     flex: 1;
     overflow-y: auto;
-    max-width: 600px;
+    max-width: 700px;
     max-height: 100%;
     width: 100%;
     padding: 20px;
     margin: 0 auto;
     background-color: #2d2d2d; /* Dark Gray */
     border-radius: 10px;
+    position: relative;
     align-items: center;
     box-sizing: border-box;
 
@@ -252,22 +292,117 @@ a:hover {
 /* Message Styles */
 .message {
     margin-bottom: 10px;
+    display: flex;
+    gap: .5rem;
+    width: 100%;
+}
+
+.advertisement-container {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    height: 30%;
+    width: 100%;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+.advertisement {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.5s ease;
+    gap: 0.5rem;
     padding: 10px;
     border-radius: 5px;
-    max-width: 80%;
-    word-wrap: break-word;
+    text-align: center;
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    justify-self: flex-end;
+    z-index: 999;
+    animation: slideIn 0.5s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+
+.close-button {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+code {
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    padding: 0.3em 0.5em;
+    border-radius: 5px;
+    font-family: 'Fira Code', Consolas, 'Courier New', monospace;
+    font-size: 0.95em;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.message.user {
+    justify-content: flex-end;
+    animation: slideIn 0.5s ease;
+}
+
+.ai-message > p, .user-message > p {
+    margin: 0;
+    line-height: 1.4;
 }
 
 .ai-message {
     background-color: #6200ee; /* Blue */
     color: #ffffff; /* White */
-    align-self: flex-start;
+    position: relative;
+    padding: 10px;
+    max-width: 80%;
+    word-wrap: break-word;
+    border-radius: 5px;
+}
+.ai-message::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -6px;
+    width: 0;
+    height: 0;
+    border-top: 1px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-right: 10px solid #6200ee;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
 }
 
 .user-message {
     background-color: #bb86fc; /* Purple */
     color: #1a1a1a; /* Black */
-    align-self: flex-end;
+    word-wrap: break-word;
+    position: relative;
+    padding: 10px;
+    max-width: 80%;
+    border-radius: 5px;
+}
+
+.user-message::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -6px;
+    width: 0;
+    height: 0;
+    border-top: 1px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-left: 10px solid #bb86fc;
 }
 
 /* Input Container */
@@ -315,12 +450,95 @@ a:hover {
     align-items: center;
 }
 
+.modal.show {
+    display: flex;
+}
+
+.slideOut {
+    animation: slideOut 0.5s ease;
+}
+
+.slideIn {
+    animation: slideIn 0.5s ease;
+}
+
 .modal-content {
     background-color: #2d2d2d; /* Dark Gray */
     padding: 20px;
-    border-radius: 10px;
-    width: 300px;
+    border-radius: 1rem;
+    display: grid;
+    gap: 1rem;
+    height: 90%;
+    min-width: 70%;
+    grid-template-areas: 'menu content';
+    grid-template-columns: 1fr 3fr;
     position: relative;
+}
+
+.menu {
+    grid-area: menu;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #ffffff;
+    height: 100%;
+}
+
+.tabs {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+    flex: 1;
+}
+
+.tab {
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    padding: 10px;
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+
+#profile-form {
+    flex-grow: 1;
+}
+
+
+.menu-action {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.profile-tab, .settings-tab {
+    display: none;
+}
+
+.selected-tab {
+    display: block;
+}
+
+.menu-content {
+    overflow-y: auto;
+}
+
+.menu-action > button {
+    width: auto;
+}
+
+.tab.selected {
+    background-color: #6200ee;
+}
+
+.tab:hover {
+    background-color: #1a1a1a;
 }
 
 .close {
@@ -334,4 +552,49 @@ a:hover {
 
 .close:hover {
     color: #bb86fc; /* Purple */
+}
+
+.slideOut {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+/* ===== Scrollbar CSS ===== */
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #6200ee #2d2d2d;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+    width: 0px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #6200ee;
+    border-radius: 0px;
+    border: 3px groove #ffffff;
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateY(100%);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOut {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(100%);
+    }
 }

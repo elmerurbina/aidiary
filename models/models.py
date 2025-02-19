@@ -40,8 +40,11 @@ def get_db_connection():
     return conn
 
 # User Model
-# User Model
 class User:
+
+    db_table = "users"
+
+
     @staticmethod
     def create_user(name, email, password, photo=None):
         """
@@ -58,6 +61,34 @@ class User:
         finally:
             cur.close()
             connection_pool.putconn(conn)  # Return the connection to the pool
+
+    @staticmethod
+    def generic_update_user(user_id, **kwargs):
+        """
+        Actualiza el perfil de usuario en la base de datos con los campos proporcionados.
+        """
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        fields = []
+
+        for key, value in kwargs.items():
+            if isinstance(value, str):
+                value = f"'{value}'"
+            fields.append(f"{key} = {value}")
+
+        sql = f"UPDATE {User.db_table} SET {', '.join(fields)} WHERE id = {user_id}"
+
+        try:
+            cur.execute(sql)
+            conn.commit()
+        except psycopg2.Error as e:
+            print(f"Error actualizando el perfil de usuario: {e}")
+            conn.rollback()
+        finally:
+            cur.close()
+            connection_pool.putconn(conn)
+
 
     @staticmethod
     def update_user(user_id, name=None, email=None, password=None, photo=None):
