@@ -186,3 +186,112 @@ CREATE INDEX IF NOT EXISTS idx_entry_date ON diary_entries(entry_date);
 
 ALTER TABLE diary_entries
 ALTER COLUMN entry_date TYPE DATE USING entry_date::DATE;
+
+
+-- Create the 'feedback' table
+CREATE TABLE IF NOT EXISTS feedback (
+    id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for each feedback entry
+    user_id INT REFERENCES users(id) ON DELETE CASCADE, -- Foreign key to the 'users' table
+    message TEXT NOT NULL,                      -- Feedback message
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Timestamp for when the feedback was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP   -- Timestamp for when the feedback was last updated
+);
+
+-- Create the 'sentiment_history' table
+CREATE TABLE IF NOT EXISTS sentiment_history (
+    id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for each sentiment record
+    user_id INT REFERENCES users(id) ON DELETE CASCADE, -- Foreign key to the 'users' table
+    sentiment_score FLOAT NOT NULL,              -- Sentiment score
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP   -- Timestamp for when the sentiment record was created
+);
+
+-- Create the 'sentiment_category' table
+CREATE TABLE IF NOT EXISTS sentiment_category (
+    id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for each category
+    name VARCHAR(255) NOT NULL UNIQUE,          -- Name of the sentiment category
+    description TEXT                            -- Description of the category
+);
+
+-- Procedure to Insert Feedback
+CREATE OR REPLACE PROCEDURE insert_feedback(p_user_id INT, p_message TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO feedback(user_id, message)
+    VALUES (p_user_id, p_message);
+END;
+$$;
+
+-- Procedure to Update Feedback
+CREATE OR REPLACE PROCEDURE update_feedback(p_id INT, p_message TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    UPDATE feedback
+    SET message = p_message,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_id;
+END;
+$$;
+
+-- Procedure to Delete Feedback
+CREATE OR REPLACE PROCEDURE delete_feedback(p_id INT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    DELETE FROM feedback WHERE id = p_id;
+END;
+$$;
+
+-- Procedure to Insert Sentiment History
+CREATE OR REPLACE PROCEDURE insert_sentiment_history(p_user_id INT, p_sentiment_score FLOAT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO sentiment_history(user_id, sentiment_score)
+    VALUES (p_user_id, p_sentiment_score);
+END;
+$$;
+
+-- Procedure to Update Sentiment History
+CREATE OR REPLACE PROCEDURE update_sentiment_history(p_id INT, p_sentiment_score FLOAT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    UPDATE sentiment_history
+    SET sentiment_score = p_sentiment_score,
+        created_at = CURRENT_TIMESTAMP
+    WHERE id = p_id;
+END;
+$$;
+
+-- Procedure to Delete Sentiment History
+CREATE OR REPLACE PROCEDURE delete_sentiment_history(p_id INT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    DELETE FROM sentiment_history WHERE id = p_id;
+END;
+$$;
+
+-- Procedure to Insert Sentiment Category
+CREATE OR REPLACE PROCEDURE insert_sentiment_category(p_name VARCHAR, p_description TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO sentiment_category(name, description)
+    VALUES (p_name, p_description);
+END;
+$$;
+
+-- Procedure to Update Sentiment Category
+CREATE OR REPLACE PROCEDURE update_sentiment_category(p_id INT, p_name VARCHAR, p_description TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    UPDATE sentiment_category
+    SET name = p_name,
+        description = p_description
+    WHERE id = p_id;
+END;
+$$;
+
+-- Procedure to Delete Sentiment Category
+CREATE OR REPLACE PROCEDURE delete_sentiment_category(p_id INT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    DELETE FROM sentiment_category WHERE id = p_id;
+END;
+$$;
