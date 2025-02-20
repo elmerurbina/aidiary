@@ -1,50 +1,55 @@
--- Create the 'aidiary' database if it doesn't exist already
-CREATE DATABASE IF NOT EXISTS aidiary;
+-- Crear la base de datos si no existe
+CREATE DATABASE aidiary;
 
--- Connect to the 'aidiary' database
+-- Conectarse a la base de datos
 \c aidiary;
 
--- Create the 'users' table
+-- Crear la tabla de usuarios
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for each user
-    name VARCHAR(255) NOT NULL,                  -- User's full name
-    email VARCHAR(255) UNIQUE NOT NULL,          -- User's email (unique)
-    password VARCHAR(255) NOT NULL,              -- User's password
-    photo VARCHAR(255),                          -- Optional user photo URL or path
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Timestamp for when user created their account
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP   -- Timestamp for when user data was last updated
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    photo VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create the 'diary_entries' table
+-- Crear la tabla de entradas de diario
 CREATE TABLE IF NOT EXISTS diary_entries (
-    id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for each entry
-    user_id INT REFERENCES users(id) ON DELETE CASCADE, -- Foreign key to the 'users' table, cascades on delete
-    entry_date DATE NOT NULL,                    -- Date of the diary entry
-    message TEXT NOT NULL,                       -- The message/diary content the user writes
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Timestamp for when the entry was created
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP   -- Timestamp for when the entry was last updated
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    entry_date DATE NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Index for quick lookup of diary entries by date and user
-CREATE INDEX IF NOT EXISTS idx_diary_entries_user_date ON diary_entries(user_id, entry_date);
-
--- Function to Insert a User
-CREATE OR REPLACE FUNCTION insert_user(p_name VARCHAR, p_email VARCHAR, p_password VARCHAR, p_photo VARCHAR)
-RETURNS VOID AS $$
+-- Procedimiento para insertar un usuario
+CREATE OR REPLACE PROCEDURE insert_user(
+    IN p_name VARCHAR,
+    IN p_email VARCHAR,
+    IN p_password VARCHAR,
+    IN p_photo VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     INSERT INTO users(name, email, password, photo)
     VALUES (p_name, p_email, p_password, p_photo);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
--- Function to Update User Profile
-CREATE OR REPLACE FUNCTION update_user_profile(
-    p_id INT,
-    p_name VARCHAR,
-    p_email VARCHAR,
-    p_password VARCHAR,
-    p_photo VARCHAR
-) RETURNS VOID AS $$
+-- Procedimiento para actualizar un usuario
+CREATE OR REPLACE PROCEDURE update_user_profile(
+    IN p_id INT,
+    IN p_name VARCHAR,
+    IN p_email VARCHAR,
+    IN p_password VARCHAR,
+    IN p_photo VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     UPDATE users
     SET name = p_name,
@@ -52,90 +57,61 @@ BEGIN
         password = p_password,
         photo = p_photo,
         updated_at = CURRENT_TIMESTAMP
-    WHERE users.id = p_id;  -- Qualify the column with the table name
+    WHERE id = p_id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
--- Function to Retrieve User by ID
-CREATE OR REPLACE FUNCTION get_user_by_id(p_id INT)
-RETURNS TABLE (
-    id INT,
-    name VARCHAR,
-    email VARCHAR,
-    password VARCHAR,
-    photo VARCHAR,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-) AS $$
+-- Procedimiento para eliminar un usuario
+CREATE OR REPLACE PROCEDURE delete_user_profile(
+    IN p_id INT
+)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    RETURN QUERY
-    SELECT users.id, users.name, users.email, users.password, users.photo, users.created_at, users.updated_at
-    FROM users
-    WHERE users.id = p_id;  -- Qualify the column with the table name
+    DELETE FROM users WHERE id = p_id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
--- Function to Retrieve User by Email
-CREATE OR REPLACE FUNCTION get_user_by_email(p_email VARCHAR)
-RETURNS TABLE (
-    id INT,
-    name VARCHAR,
-    email VARCHAR,
-    password VARCHAR,
-    photo VARCHAR,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-) AS $$
+-- Procedimiento para insertar una entrada en el diario
+CREATE OR REPLACE PROCEDURE create_diary_entry(
+    IN p_user_id INT,
+    IN p_message TEXT
+)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    RETURN QUERY
-    SELECT users.id, users.name, users.email, users.password, users.photo, users.created_at, users.updated_at
-    FROM users
-    WHERE users.email = p_email;
+    INSERT INTO diary_entries(user_id, entry_date, message)
+    VALUES (p_user_id, CURRENT_DATE, p_message);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
--- Function to Retrieve Entries by User
-CREATE OR REPLACE FUNCTION get_entries_by_user(p_user_id INT, p_entry_date DATE)
-RETURNS TABLE(id INT, user_id INT, message TEXT, created_at TIMESTAMP, updated_at TIMESTAMP) AS
-$$
+-- Procedimiento para eliminar una entrada del diario
+CREATE OR REPLACE PROCEDURE delete_diary_entry(
+    IN p_entry_id INT
+)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    RETURN QUERY
-    SELECT
-        diary_entries.id,
-        diary_entries.user_id,
-        diary_entries.message,
-        diary_entries.created_at,
-        diary_entries.updated_at
-    FROM diary_entries
-    WHERE diary_entries.user_id = p_user_id
-    AND DATE(diary_entries.created_at) = p_entry_date
-    ORDER BY diary_entries.created_at DESC;
+    DELETE FROM diary_entries WHERE id = p_entry_id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-
--- Function to Delete User Profile
-CREATE OR REPLACE FUNCTION delete_user_profile(p_id INT)
-RETURNS VOID AS $$
+-- Procedimiento para actualizar una entrada del diario
+CREATE OR REPLACE PROCEDURE update_diary_entry(
+    IN p_entry_id INT,
+    IN p_message TEXT
+)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    DELETE FROM users WHERE users.id = p_id;  -- Qualify the column with the table name
+    UPDATE diary_entries
+    SET message = p_message,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_entry_id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
--- Function to Create a Diary Entry
-CREATE OR REPLACE FUNCTION create_diary_entry(
-    p_user_id INT,
-    p_message TEXT,
-    p_sentiment_score FLOAT,
-    p_sentiment_label VARCHAR
-) RETURNS VOID AS $$
-BEGIN
-    INSERT INTO diary_entries(user_id, entry_date, message, sentiment_score, sentiment_label)
-    VALUES (p_user_id, CURRENT_DATE, p_message, p_sentiment_score, p_sentiment_label);
-END;
-$$ LANGUAGE plpgsql;
-
--- Trigger to Update 'updated_at' field for the 'users' table upon update
+-- Trigger para actualizar la fecha de actualización en la tabla 'users'
 CREATE OR REPLACE FUNCTION update_updated_at_column_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -149,7 +125,7 @@ BEFORE UPDATE ON users
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column_user();
 
--- Trigger to Update 'updated_at' field for the 'diary_entries' table upon update
+-- Trigger para actualizar la fecha de actualización en la tabla 'diary_entries'
 CREATE OR REPLACE FUNCTION update_updated_at_column_diary()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -163,26 +139,22 @@ BEFORE UPDATE ON diary_entries
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column_diary();
 
--- View to Retrieve User Profile
+-- Crear vistas para consultar usuarios y sus entradas
 CREATE OR REPLACE VIEW user_profile_view AS
 SELECT id AS user_id, name, email, photo, created_at, updated_at
 FROM users;
 
--- View to Retrieve User Entries
 CREATE OR REPLACE VIEW user_entries_view AS
 SELECT u.id AS user_id, u.name, de.id AS entry_id, de.message, de.entry_date, de.created_at, de.updated_at
 FROM users u
 JOIN diary_entries de ON u.id = de.user_id
 ORDER BY de.entry_date DESC;
 
--- Index for quick lookup of diary entries by user_id and entry_date
+-- Crear índices para mejorar el rendimiento de las consultas
 CREATE INDEX IF NOT EXISTS idx_diary_entries_user_date ON diary_entries(user_id, entry_date);
-
--- Index for quick lookup of diary entries by user_id
 CREATE INDEX IF NOT EXISTS idx_user_id ON diary_entries(user_id);
-
--- Index for quick lookup of diary entries by entry_date
 CREATE INDEX IF NOT EXISTS idx_entry_date ON diary_entries(entry_date);
 
+-- Asegurar que la columna entry_date sea de tipo DATE
 ALTER TABLE diary_entries
 ALTER COLUMN entry_date TYPE DATE USING entry_date::DATE;
